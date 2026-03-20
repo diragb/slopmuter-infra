@@ -1,0 +1,33 @@
+{
+  "name": "slopmuter-infra",
+  "version": "1.0.0",
+  "description": "Shared local development infrastructure for all SlopMuter microservices. Provides PostgreSQL and Redis that all services connect to.",
+  "main": "",
+  "scripts": {
+    "db:start": "docker compose up -d postgres",
+    "db:stop": "docker compose down",
+    "db:shell": "docker exec -it slopmuter-postgres psql -U postgres -d slopmuter",
+    "db:migrate": "node scripts/run-migration.js",
+    "redis:start": "docker compose up -d redis",
+    "redis:stop": "docker compose stop redis",
+    "redis:shell": "docker exec -it slopmuter-redis redis-cli",
+    "containers:start": "npx concurrently \"yarn db:start\" \"yarn redis:start\"",
+    "containers:stop": "npx concurrently \"yarn db:stop\" \"yarn redis:stop\""
+  },
+  "keywords": [],
+  "author": "Dirag Biswas (https://github.com/diragb)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diragb/slopmuter-infra.git"
+  },
+  "bugs": {
+    "url": "https://github.com/diragb/slopmuter-infra/issues"
+  },
+  "homepage": "https://github.com/diragb/slopmuter-infra#readme",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "pg": "^8.20.0"
+  }
+}
