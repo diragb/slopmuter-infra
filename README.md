@@ -23,7 +23,7 @@ Shared local development infrastructure for all SlopMuter microservices. Provide
 3. Run migrations (when available):
 
    ```bash
-   yarn db:migrations
+   yarn db:migrate
    ```
 
 ## Connection Details
