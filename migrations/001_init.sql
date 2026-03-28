@@ -1,6 +1,17 @@
+BEGIN;
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TYPE subscription_tier AS ENUM ('free', 'pro');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type
+    WHERE typname = 'subscription_tier'
+  ) THEN
+    CREATE TYPE subscription_tier AS ENUM ('free', 'pro');
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS users (
   id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -22,20 +33,34 @@ CREATE TABLE IF NOT EXISTS users (
   CONSTRAINT users_provider_user_unique UNIQUE (auth_provider, provider_user_id)
 );
 
-create table if not exists refresh_tokens (
-  id bigserial primary key,
-  user_id bigint not null references users(id) on delete cascade,
-  token_hash text not null unique,
-  expires_at timestamptz not null,
-  created_at timestamptz not null default now(),
-  revoked_at timestamptz,
-  replaced_by_token_hash text,
-  user_agent text,
-  ip_address inet
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  revoked_at TIMESTAMPTZ,
+  replaced_by_token_hash TEXT,
+  user_agent TEXT,
+  ip_address INET
 );
 
-create index if not exists idx_refresh_tokens_user_id
-  on refresh_tokens(user_id);
+CREATE TABLE IF NOT EXISTS user_preferences (
+  id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category_mask BIGINT NOT NULL,
+  mute_on_twitter_default BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_user_preferences_user_id UNIQUE (user_id)
+);
 
-create index if not exists idx_refresh_tokens_expires_at
-  on refresh_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_preferences_user_id
+  ON user_preferences(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id
+  ON refresh_tokens(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires_at
+  ON refresh_tokens(expires_at);
+
+COMMIT;
