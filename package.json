@@ -1,18 +1,27 @@
 {
   "name": "slopmuter-infra",
   "version": "1.0.0",
-  "description": "Shared local development infrastructure for all SlopMuter microservices. Provides PostgreSQL and Redis that all services connect to.",
+  "description": "Shared local development infrastructure for SlopMuter microservices: PostgreSQL, Redis, and LocalStack (SQS + SES).",
   "main": "",
   "scripts": {
     "db:start": "docker compose up -d postgres",
     "db:stop": "docker compose down",
     "db:shell": "docker exec -it slopmuter-postgres psql -U postgres -d slopmuter",
+    "db:nuke": "docker compose down -v",
+    "db:restart": "docker compose down && docker compose up -d",
     "db:migrate": "node scripts/run-migration.js",
+    "localstack:start": "docker compose up -d localstack",
+    "localstack:stop": "docker compose stop localstack",
+    "localstack:init": "node scripts/init-localstack.js",
     "redis:start": "docker compose up -d redis",
     "redis:stop": "docker compose stop redis",
     "redis:shell": "docker exec -it slopmuter-redis redis-cli",
-    "containers:start": "npx concurrently \"yarn db:start\" \"yarn redis:start\"",
-    "containers:stop": "npx concurrently \"yarn db:stop\" \"yarn redis:stop\""
+    "redis:nuke": "docker compose down -v",
+    "redis:restart": "docker compose down && docker compose up -d",
+    "containers:start": "npx concurrently \"yarn db:start\" \"yarn redis:start\" \"yarn localstack:start\"",
+    "containers:stop": "npx concurrently \"yarn db:stop\" \"yarn redis:stop\" \"yarn localstack:stop\"",
+    "containers:nuke": "npx concurrently \"yarn db:nuke\" \"yarn redis:nuke\"",
+    "containers:restart": "npx concurrently \"yarn db:restart\" \"yarn redis:restart\""
   },
   "keywords": [],
   "author": "Dirag Biswas (https://github.com/diragb)",
@@ -27,6 +36,8 @@
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.1024.0",
+    "@aws-sdk/client-sqs": "^3.1024.0",
     "dotenv": "^17.3.1",
     "pg": "^8.20.0"
   }

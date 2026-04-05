@@ -23,6 +23,30 @@ services:
     volumes:
       - redis_data:/data
 
+  # Pinned 3.7.x: `localstack/localstack:latest` now pulls 2026.x images that require
+  # LOCALSTACK_AUTH_TOKEN (LocalStack Cloud). For free local dev, stay on 3.7.x or set a token.
+  localstack:
+    image: localstack/localstack:3.7.2
+    container_name: slopmuter-localstack
+    restart: unless-stopped
+    ports:
+      - '4566:4566'
+    environment:
+      SERVICES: sqs,ses
+      DEFAULT_REGION: us-east-1
+      DEBUG: '0'
+      # If you intentionally use a newer image, LocalStack may require this until you add LOCALSTACK_AUTH_TOKEN.
+      LOCALSTACK_ACKNOWLEDGE_ACCOUNT_REQUIREMENT: '1'
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ['CMD', 'curl', '-sf', 'http://localhost:4566/_localstack/health']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
 volumes:
   postgres_data:
   redis_data:
+  localstack_data:
